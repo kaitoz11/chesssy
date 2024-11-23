@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -36,8 +37,28 @@ type Board struct{
     nextMove Player
 }
 
-func (b *Board) canCastle(side CastlingRights) bool {
-    return b.gameState & side != 0
+
+func (b *Board) UpdateCastle(side CastlingRights, p Player) error {
+    var resetBytes CastlingRights
+    if p == WHITE {
+        resetBytes = ^(WHITE_K | WHITE_Q)
+    } else {
+        resetBytes = ^(BLACK_k | BLACK_q)
+    }
+
+    isInvalidPlayerSide := side & resetBytes != 0 
+    if isInvalidPlayerSide {
+        return errors.New("Not valid Player")
+    }
+    
+    isNotCastlingAvailable := b.gameState & side == 0
+    if isNotCastlingAvailable {
+        return errors.New("Castling is not available")
+    }
+
+    b.gameState = b.gameState & resetBytes
+    fmt.Printf("Update state to: %4b - %v\n", b.gameState, b.gameState)
+    return nil
 }
 
 func (b *Board) Print(){
@@ -66,17 +87,6 @@ func NewBoard() *Board {
 
         // KQkq (Uppercase -> White)
         gameState: 0b1111,
-
-        // blackState: &state{
-        //     isKingMoved: false,
-        //     isKSideRookMoved: false,
-        //     isQSideRookMoved: false,
-        // },
-        // whiteState: &state{
-        //     isKingMoved: false,
-        //     isKSideRookMoved: false,
-        //     isQSideRookMoved: false,
-        // },
 
         nextMove: WHITE,
     }
