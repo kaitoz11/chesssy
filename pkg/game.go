@@ -1,7 +1,7 @@
 package pkg
 
 type MoveMaker interface{
-    func Move()
+    // func Move()
 }
 
 type Game struct{

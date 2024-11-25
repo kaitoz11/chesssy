@@ -7,38 +7,38 @@ import (
 
 func main() {
 
-	b := internal.NewBoard()
-	b.Print()
-
-	err := b.UpdateCastle(internal.BLACK_k, internal.BLACK)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = b.UpdateCastle(internal.BLACK_k, internal.BLACK)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = b.UpdateCastle(internal.BLACK_k, internal.WHITE)
-	if err != nil {
-		fmt.Println(err)
-	}
-    
-    err = b.UpdateCastle(internal.WHITE_K, internal.WHITE)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = b.UpdateCastle(internal.WHITE_Q, internal.WHITE)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-    err = b.UpdateCastle(internal.WHITE_Q, internal.BLACK)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// b := internal.NewBoard()
+	// b.Print()
+	//
+	// err := b.UpdateCastle(internal.BLACK_k, internal.BLACK)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	// err = b.UpdateCastle(internal.BLACK_k, internal.BLACK)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	// err = b.UpdateCastle(internal.BLACK_k, internal.WHITE)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	//    err = b.UpdateCastle(internal.WHITE_K, internal.WHITE)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	// err = b.UpdateCastle(internal.WHITE_Q, internal.WHITE)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	//    err = b.UpdateCastle(internal.WHITE_Q, internal.BLACK)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	// fmt.Println("WTF")
 	// a := internal.ToPiece(3)
@@ -49,6 +49,11 @@ func main() {
 	//    fmt.Println(hehe)
 	//
 	
-    // fen := "r3k2r/pp1n2pp/2p2q2/b2p1n2/BP1Pp3/P1N2P2/2PB2PP/R2Q1RK1 w kq b3 0 13"
-	// fmt.Prentln(internal.IsFen(fen))
+    fen := "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq d3 0 3"
+    board, err := internal.NewBoardFromFEN(fen)
+    if err != nil {
+		fmt.Println(err)
+	}
+    board.Print()
 }
+

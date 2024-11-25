@@ -20,6 +20,43 @@ const (
 	NO_PIECE Piece = 0
 )
 
+func FromCharToPiece(c rune) Piece {
+	switch c {
+	case 'p':
+		return BLACK_PAWN
+	case 'P':
+		return WHITE_PAWN
+
+	case 'n':
+		return BLACK_KNIGHT
+	case 'N':
+		return WHITE_KNIGHT
+
+	case 'b':
+		return BLACK_BISHOP
+	case 'B':
+		return WHITE_BISHOP
+
+	case 'r':
+		return BLACK_ROOK
+	case 'R':
+		return WHITE_ROOK
+
+	case 'q':
+		return BLACK_QUEEN
+	case 'Q':
+		return WHITE_QUEEN
+
+	case 'k':
+		return BLACK_KING
+	case 'K':
+		return WHITE_KING
+
+	default:
+		return NO_PIECE
+	}
+}
+
 func ToPiece(i int32) Piece {
 	switch Piece(i) {
 	case WHITE_PAWN:
