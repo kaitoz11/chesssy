@@ -1,7 +1,8 @@
 package main
 
 import (
-	"chesssy/internal"
+	"chesssy/internal/engine"
+	"chesssy/internal/parser"
 	"fmt"
 )
 
@@ -44,16 +45,26 @@ func main() {
 	// a := internal.ToPiece(3)
 	// fmt.Println(a.Point())
 	//
-	//    var hehe rune 
+	//    var hehe rune
 	//    hehe = 'a'
 	//    fmt.Println(hehe)
-	//
 	
-    fen := "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq d3 0 3"
-    board, err := internal.NewBoardFromFEN(fen)
-    if err != nil {
+
+	fen := "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq d3 0 3"
+	boardmap, err := parser.NewBoardFromFEN(fen)
+	if err != nil {
 		fmt.Println(err)
 	}
-    board.Print()
-}
+	boardmap.Print()
 
+	bitBoard := engine.NewBitmap()
+	bitBoard.Set(engine.A8)
+	bitBoard.Set(engine.A4)
+	bitBoard.Print()
+
+	a := engine.NewBitmap()
+	a.Set(engine.A4)
+	a.Shift(engine.UP).Shift(engine.UP_RIGHT).Print()
+
+	bitBoard.Print()
+}
