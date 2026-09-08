@@ -1,0 +1,150 @@
+# Continuous integration: the checks every push and pull request must pass.
+#
+# The matrix job uses plain go commands so that it runs identically on the Windows
+# runner, which has no make. Everything else uses the make targets a contributor
+# runs locally, so that CI and `make check` cannot drift apart.
+#
+# Supply chain notes, which apply to every workflow here:
+#   - Actions are pinned to a commit SHA, not a tag. A tag can be moved to point at
+#     new code; a SHA cannot. The trailing comment is the human-readable version,
+#     and dependabot updates both together.
+#   - persist-credentials: false, so no git credential is left in the workspace for
+#     a build step to pick up.
+#   - The default token is read-only, granted per workflow, and only the release job
+#     is given contents: write.
+#   - No pull_request_target or workflow_run trigger, so nothing in a fork's pull
+#     request runs with this repository's secrets.
+#   - Tools fetched with `go run tool@version` are pinned by version and verified
+#     against the Go checksum database, which makes a moved upstream tag inert.
+#   - Module caching is off: the engine has no dependencies outside the standard
+#     library and no go.sum, so there is nothing to cache.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, go ${{ matrix.go }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # The oldest supported toolchain, which is the one go.mod declares, and the
+        # current release. A change that needs a newer Go has to raise go.mod first.
+        go: ["1.23.x", "stable"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+          cache: false
+      - name: Build
+        run: go build ./...
+      - name: Test
+        # Includes perft to depth 4 for every position in the suite.
+        run: go test -count=1 ./...
+
+  race:
+    name: race detector
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - run: make test-race
+
+  lint:
+    name: format and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: gofmt
+        run: make fmt-check
+      - name: go vet and staticcheck
+        run: make lint
+
+  vuln:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Known vulnerabilities in the standard library
+        # There are no third-party dependencies, so this reports vulnerabilities in
+        # the standard library and the toolchain that the engine actually calls.
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+
+  perft:
+    name: move generation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Perft and make/unmake round trips
+        run: make perft
+
+  smoke:
+    name: binary smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Build with the PGO profile
+        run: make build
+      - name: Version and licence notice
+        run: ./bin/chesssy version
+      - name: Search from the start position
+        run: printf 'uci\nisready\nposition startpos\ngo depth 10\nquit\n' | ./bin/chesssy
+      - name: Bench
+        run: ./bin/chesssy bench -depth 9

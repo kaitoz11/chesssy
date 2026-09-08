@@ -1,0 +1,65 @@
+name: Feature or improvement
+description: A new search or evaluation idea, a protocol feature, or a tooling change
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search and evaluation ideas are judged by measurement, not by argument, so
+        the useful part of the proposal is how it would be measured. See
+        [CONTRIBUTING.md](https://github.com/kaitoz11/chesssy/blob/main/CONTRIBUTING.md#judging-a-change).
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Search
+        - Evaluation
+        - Move generation
+        - UCI protocol
+        - Command line and tooling
+        - Documentation
+        - Build and CI
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change, and what problem it solves.
+    validations:
+      required: true
+
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: Prior art
+      description: >
+        Links to the Chess Programming Wiki, a paper, or another engine that does
+        this. If it is code from another project, say which project and under which
+        licence, since only GPL-compatible code can be merged.
+
+  - type: textarea
+    id: measurement
+    attributes:
+      label: How it would be measured
+      description: >
+        Which of node count (`make suite`), move agreement (`make agreement`) and
+        wall clock (`make measure`) you expect to move, and in which direction. A
+        pruning idea that only cuts nodes has to show that agreement holds.
+      placeholder: |
+        Expect suite node count down 3-6%, agreement unchanged, measure unchanged.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Participation
+      options:
+        - label: I am willing to work on this.
