@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 package engine
 
 // MaxMoves bounds the number of legal moves in any reachable position. The known

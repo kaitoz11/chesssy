@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 package engine
 
 // Draw detection. These are the three drawing rules a search needs to know

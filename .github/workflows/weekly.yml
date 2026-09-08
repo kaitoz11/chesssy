@@ -1,0 +1,38 @@
+# The checks that are too slow for every pull request: deep perft (about 465M
+# nodes), the node count suite, and move agreement against a deep search.
+#
+# Runs weekly and on demand. The numbers are printed in the job log rather than
+# compared automatically, because a shared runner's wall clock is not stable enough
+# to gate on — node counts, which are exact, are what to read here.
+name: Weekly
+
+on:
+  schedule:
+    - cron: "17 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: deep verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Deep perft
+        run: make perft-deep
+      - name: Search node counts over forty positions
+        run: make suite
+      - name: Move agreement with a deep search
+        run: make agreement

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 package engine
 
 // Move execution. MakeMove updates the occupancy bitboards, the piece array and

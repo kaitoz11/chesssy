@@ -1,5 +1,11 @@
 # chesssy
 
+[![CI](https://github.com/kaitoz11/chesssy/actions/workflows/ci.yml/badge.svg)](https://github.com/kaitoz11/chesssy/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kaitoz11/chesssy.svg)](https://pkg.go.dev/github.com/kaitoz11/chesssy)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kaitoz11/chesssy)](https://goreportcard.com/report/github.com/kaitoz11/chesssy)
+[![Go version](https://img.shields.io/github/go-mod/go-version/kaitoz11/chesssy)](go.mod)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+
 ```
    _|_  chesssy
   (o o)  a UCI chess engine
@@ -21,6 +27,10 @@ Or install it straight from the module path:
 ```sh
 go install github.com/kaitoz11/chesssy/cmd/chesssy@latest
 ```
+
+Prebuilt binaries for Linux, macOS and Windows are attached to each
+[release](https://github.com/kaitoz11/chesssy/releases), with a `checksums.txt` to
+verify a download against.
 
 To play against it, point a UCI GUI such as [Cute Chess](https://github.com/cutechess/cutechess),
 [Arena](http://www.playwitharena.de/) or [BanksiaGUI](https://banksiagui.com/) at
@@ -66,20 +76,40 @@ Subcommands are available for one-shot use:
 ./bin/chesssy perft -fen "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1" -depth 5
 ./bin/chesssy bench -depth 10                      # search a fixed position set
 ./bin/chesssy eval -fen "<fen>"                    # static evaluation
+./bin/chesssy version                              # version and licence notice
 ```
 
 ## Development
 
 | Command | Description |
 | --- | --- |
-| `make check` | format, vet, lint and run every test |
+| `make check` | the pre-pull-request gate: format check, vet, lint and every test |
 | `make test` | unit tests, including perft to depth 4 |
 | `make test-race` | same under the race detector |
-| `make lint` | `go vet` plus staticcheck |
+| `make fmt` | apply `gofmt` |
+| `make fmt-check` | report unformatted files and fail, which is what `check` and CI run |
+| `make lint` | `go vet` plus staticcheck, pinned to the version CI uses |
 | `make perft` | move generation verification and make/unmake round trips |
-| `make perft-deep` | the expensive perft depths (about 430M nodes) |
+| `make perft-deep` | the expensive perft depths (about 465M nodes) |
 | `make bench` | search benchmark over a fixed position set |
+| `make bench-smp` | the same benchmark on one thread and on every core |
 | `make bench-go` | Go benchmarks for attacks, move generation, eval and search |
+| `make suite` | node count over forty positions, exactly reproducible |
+| `make agreement` | how often a shallow search picks the deep search's move |
+| `make measure` | best-of-five wall clock for the workloads that matter |
+| `make pgo` | regenerate `cmd/chesssy/default.pgo` from the binary's own workloads |
+| `make eval` | static evaluation of the start position |
+| `make clean` | remove `bin` and the build and test caches |
+
+CI builds and tests every push and pull request on Linux, macOS and Windows,
+against the Go version `go.mod` declares and the current release. Formatting, vet,
+staticcheck, the race detector, perft and a binary smoke test run once on Linux.
+The deep perft and the measurement targets are too slow for that, so they run
+[weekly](.github/workflows/weekly.yml) instead.
+
+Releases are cut by tagging: pushing a `v*` tag builds binaries for Linux, macOS
+and Windows with [GoReleaser](https://goreleaser.com) and attaches them, with
+checksums, to a GitHub release.
 
 ## Layout
 
@@ -248,5 +278,38 @@ what chesssy does, measured the same way before and after each change.
 | --- | --- | --- |
 | `Hash` | 64 | transposition table size in MB |
 | `Threads` | 1 | search threads; more is faster up to the number of performance cores, and makes the search nondeterministic |
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md)
+covers how to build and test, and — more importantly for a chess engine — how a
+change to the search or the evaluation is judged: node count, move agreement and
+wall clock, each answering a different question, with the rule that cutting nodes
+while agreement falls means the search is pruning too much.
+
+An illegal move, a crash or a protocol violation is the most serious kind of bug
+here, since it makes the engine unusable in a GUI or a tournament. Report those
+with the FEN and the exact command sequence. For a security problem, use
+[private reporting](SECURITY.md) rather than a public issue.
+
+Participation is under the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Licence
+
+Copyright (C) 2026 kaitoz11.
+
+chesssy is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version. It is
+distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the [LICENSE](LICENSE) file, or <https://www.gnu.org/licenses/>, for the full
+terms.
+
+In practice that means anything built on chesssy has to stay free software under
+the same licence, source included — a derived engine may not be shipped as a
+closed binary.
+
+Release history is in [CHANGELOG.md](CHANGELOG.md).
 
 

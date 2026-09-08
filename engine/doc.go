@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 // Package engine implements the board representation, move generation and
 // position handling for the chesssy chess engine.
 //

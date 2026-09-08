@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 package search
 
 // Scores are centipawns from the point of view of the side to move, which is what

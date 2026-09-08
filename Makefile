@@ -1,8 +1,9 @@
 BINARY      := bin/chesssy
 PKGS        := ./...
-STATICCHECK := honnef.co/go/tools/cmd/staticcheck@latest
+# Pinned, so that a lint failure means the code changed and not the linter.
+STATICCHECK := honnef.co/go/tools/cmd/staticcheck@v0.8.1
 
-.PHONY: all build run test test-race perft perft-deep bench bench-smp bench-go suite agreement measure pgo eval fmt vet lint check clean
+.PHONY: all build run test test-race perft perft-deep bench bench-smp bench-go suite agreement measure pgo eval fmt fmt-check vet lint check clean
 
 all: check build
 
@@ -71,13 +72,24 @@ pgo: build
 fmt:
 	gofmt -l -w .
 
+# What CI runs: report unformatted files and fail, rather than rewriting them, so a
+# pull request that skipped gofmt is visible instead of silently fixed.
+fmt-check:
+	@files="$$(gofmt -l .)"; \
+	if [ -n "$$files" ]; then \
+		echo "not gofmt'd, run make fmt:"; echo "$$files"; exit 1; \
+	fi
+
 vet:
 	go vet $(PKGS)
 
 lint: vet
 	go run $(STATICCHECK) $(PKGS)
 
-check: fmt lint test
+# The pre-pull-request gate, and the same checks CI runs. It reports formatting
+# rather than fixing it, so that `make check` passing means CI will too; run
+# `make fmt` to apply the formatting it complains about.
+check: fmt-check lint test
 
 clean:
 	rm -rf bin

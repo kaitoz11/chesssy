@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 // Package search picks moves. It evaluates positions statically and searches the
 // move tree with a fail-soft principal variation search, an alpha-beta variant,
 // driven by iterative deepening.

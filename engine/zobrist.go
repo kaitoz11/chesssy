@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 package engine
 
 // Zobrist hashing gives each position a 64-bit key that can be updated

@@ -1,0 +1,19 @@
+# Normalise line endings, so that a checkout on Windows does not turn every file
+# into a diff. Go source is LF everywhere, including on Windows.
+* text=auto eol=lf
+
+*.go text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Makefile text eol=lf
+scripts/* text eol=lf
+
+# The PGO profile is a binary protobuf: never munge it, and keep it out of diffs.
+*.pgo binary linguist-generated=true
+
+# Test data is data, not prose: exclude it from language statistics.
+search/testdata/* linguist-vendored=true
+
+# The licence is not this project's writing.
+LICENSE linguist-detectable=false

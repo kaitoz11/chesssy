@@ -1,0 +1,104 @@
+# GoReleaser builds the release artefacts. Check this file with `goreleaser check`
+# and try a release without publishing with `goreleaser release --snapshot --clean`.
+version: 2
+
+project_name: chesssy
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: chesssy
+    main: ./cmd/chesssy
+    binary: chesssy
+    env:
+      - CGO_ENABLED=0
+    # The profile in cmd/chesssy/default.pgo is picked up by the toolchain
+    # automatically, so release binaries get the same 4% the local build does.
+    flags:
+      - -trimpath
+    ldflags:
+      # Stamp the tag into uci.Version, so a downloaded binary reports the release
+      # it came from rather than the version in the source.
+      - -s -w -X github.com/kaitoz11/chesssy/uci.Version={{ .Version }}
+    # A reproducible build: without this the binary carries the build time.
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: chesssy
+    ids: [chesssy]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macos{{ else }}{{ .Os }}{{ end }}_{{ .Arch }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-dev+{{ .ShortCommit }}"
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Search and evaluation
+      regexp: '^.*?(search|eval|prune|order)(\(.+\))??!?:.+$'
+      order: 0
+    - title: Move generation and board
+      regexp: '^.*?(engine|movegen|perft|board)(\(.+\))??!?:.+$'
+      order: 1
+    - title: Protocol and command line
+      regexp: '^.*?(uci|cmd|cli)(\(.+\))??!?:.+$'
+      order: 2
+    - title: Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 3
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - "^docs?:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - "^style:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  draft: false
+  prerelease: auto
+  footer: |
+    ## Install
+
+    ```sh
+    go install github.com/kaitoz11/chesssy/cmd/chesssy@{{ .Tag }}
+    ```
+
+    Or download the archive for your platform below, unpack it, and point a UCI
+    GUI at the `chesssy` binary. Verify a download against `checksums.txt`:
+
+    ```sh
+    sha256sum -c checksums.txt --ignore-missing   # Linux
+    shasum -a 256 -c checksums.txt --ignore-missing   # macOS
+    ```
+
+    chesssy is free software under the GNU GPL v3 or later, and comes with no
+    warranty. See [LICENSE](https://github.com/kaitoz11/chesssy/blob/main/LICENSE).

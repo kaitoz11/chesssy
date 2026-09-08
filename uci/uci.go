@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 // Package uci speaks the Universal Chess Interface, the line-based protocol chess
 // GUIs use to drive engines.
 //
@@ -25,9 +28,23 @@ import (
 
 // Identification reported in reply to the uci command.
 const (
-	Name    = "chesssy"
-	Version = "1.0"
-	Author  = "cuongluu"
+	Name   = "chesssy"
+	Author = "cuongluu"
+)
+
+// Version is the version reported to a GUI and by the version subcommand. Release
+// builds overwrite it with the tag through -ldflags -X, so a downloaded binary
+// names the release it came from; a build from source keeps the value here.
+var Version = "1.0"
+
+// Licensing, shown at startup and by the version subcommand. The GPL asks an
+// interactive program to display a short notice with the copyright and the absence
+// of warranty, and to say where the full terms can be read.
+const (
+	Copyright = "Copyright (C) 2026 kaitoz11"
+	License   = "GPL-3.0-or-later"
+	Notice    = Copyright + ". chesssy is free software under the GNU GPL v3 or later,\n" +
+		"and comes with ABSOLUTELY NO WARRANTY. See the LICENSE file for the terms."
 )
 
 // Engine holds the protocol state: the current position, the searcher, and the

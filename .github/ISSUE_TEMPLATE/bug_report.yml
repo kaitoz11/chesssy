@@ -1,0 +1,96 @@
+name: Bug report
+description: An illegal move, a crash, a wrong node count, or a protocol violation
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The engine is deterministic single threaded, so a
+        precise position and command sequence usually reproduces a bug exactly.
+
+        If the engine only played a move you disagree with, that is not a bug —
+        open a feature request or a discussion instead.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What the engine did, and what you expected instead.
+      placeholder: |
+        chesssy replied `bestmove e1g1` in a position where the king has already moved.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: >
+        The exact input. A FEN plus the UCI commands is ideal; a full command line
+        is better still, since it can be pasted and run.
+      render: shell
+      placeholder: |
+        printf 'position fen 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1\ngo depth 8\n' | chesssy
+    validations:
+      required: true
+
+  - type: input
+    id: fen
+    attributes:
+      label: FEN
+      description: The position, if the bug involves one.
+      placeholder: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: What the engine printed, including any panic and its stack trace.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `chesssy version`, or the commit you built from.
+      placeholder: chesssy 1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go version
+      description: Output of `go version`, if you built from source.
+      placeholder: go version go1.23.3 linux/amd64
+
+  - type: input
+    id: threads
+    attributes:
+      label: Threads option
+      description: >
+        The value of the `Threads` option. More than one makes the search
+        nondeterministic, which matters for reproducing the bug.
+      placeholder: "1"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked that this is not already reported in an open issue.
+          required: true
+        - label: I can reproduce it on `main`, or I said which version I tested.
+          required: true

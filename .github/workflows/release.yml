@@ -1,0 +1,69 @@
+# Cut a release from a tag: cross-compiled binaries, checksums and release notes.
+#
+#   git tag -a v1.1.0 -m 'chesssy 1.1.0' && git push origin v1.1.0
+#
+# The tests run first, because a tag that fails them should not become a download.
+# Running this workflow by hand builds a snapshot and attaches it as an artefact
+# instead of publishing anything, which is how to rehearse a release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: test before release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - run: make fmt-check
+      - run: make lint
+      - run: go test -count=1 ./...
+
+  release:
+    name: goreleaser
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # GoReleaser needs the full history and tags to build the changelog.
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: >-
+            release --clean
+            ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload snapshot artefacts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v7
+        with:
+          name: chesssy-snapshot
+          path: dist/*
+          retention-days: 7

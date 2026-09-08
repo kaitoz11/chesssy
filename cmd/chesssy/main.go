@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 kaitoz11
+
 // Command chesssy is a UCI chess engine.
 //
 // Run it without arguments to speak UCI on standard input, which is what a chess
@@ -33,6 +36,7 @@ const banner = `
    _|_  chesssy %s
   (o o)  a UCI chess engine
  --|-|--
+%s
 `
 
 const usage = "usage: chesssy [uci|perft|bench|eval|version] [flags]"
@@ -64,7 +68,7 @@ func run(args []string, out io.Writer, in io.Reader) error {
 	case "eval":
 		return runEval(args, out)
 	case "version":
-		fmt.Fprintf(out, "%s %s\n", uci.Name, uci.Version)
+		fmt.Fprintf(out, "%s %s\n%s\n", uci.Name, uci.Version, uci.Notice)
 		return nil
 	default:
 		return fmt.Errorf("unknown command %q\n%s", name, usage)
@@ -73,7 +77,7 @@ func run(args []string, out io.Writer, in io.Reader) error {
 
 // runUCI speaks the protocol until end of input or a quit command.
 func runUCI(out io.Writer, in io.Reader) error {
-	fmt.Fprintf(out, banner, uci.Version)
+	fmt.Fprintf(out, banner, uci.Version, uci.Notice)
 	return uci.New(out).Run(in)
 }
 
