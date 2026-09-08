@@ -44,7 +44,9 @@ A UCI chess engine in Go with no dependencies outside the standard library.
   identifiers, contribution guide, code of conduct and security policy;
   continuous integration across Linux, macOS and Windows with vet, staticcheck,
   the race detector, perft, govulncheck and CodeQL; a weekly deep verification
-  run; and release automation producing binaries with checksums on tag.
+  run; and release automation producing binaries with checksums on tag. Actions
+  are pinned by commit SHA, workflows default to a read-only token, and no
+  workflow runs fork code with secrets.
 - Startup notice reporting the copyright and the absence of warranty, as the GPL
   asks of an interactive program.
 

@@ -82,7 +82,10 @@ func parseGoArgs(args []string) (limits search.Limits, perftDepth int) {
 			break
 		}
 		n, err := strconv.Atoi(args[i])
-		if err != nil {
+		// No parameter of go is meaningfully negative, and a negative one would do
+		// damage rather than nothing: nodes is a uint64, so -1 becomes a limit of
+		// eighteen quintillion, and a negative time is a deadline in the past.
+		if err != nil || n < 0 {
 			continue
 		}
 

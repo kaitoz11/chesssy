@@ -118,6 +118,16 @@ complaints are welcome, but they are feature requests, not bugs.
 
 Do not open a public issue for a security problem. See [SECURITY.md](SECURITY.md).
 
+Two rules there affect ordinary pull requests:
+
+- **No new dependencies** outside the standard library without a strong reason. A
+  dependency is a permanent addition to what can compromise this project.
+- **Pin any new GitHub Action to a full commit SHA**, with the version in a
+  trailing comment, the way the existing ones are. A tag can be moved to point at
+  new code; a digest cannot. The same goes for tools: fetch them with
+  `go run tool@version` at a pinned version, so the Go checksum database verifies
+  them, rather than by downloading a binary.
+
 ## Licence
 
 chesssy is distributed under the GNU General Public License v3.0 or later.

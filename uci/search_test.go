@@ -59,6 +59,28 @@ func TestGoWithClock(t *testing.T) {
 	}
 }
 
+// A negative number must not be taken at face value. nodes is a uint64, so -1
+// would become a limit of eighteen quintillion and the depth-1 default would be
+// searched as if unlimited; a negative movetime is a deadline in the past.
+func TestGoIgnoresNegativeNumbers(t *testing.T) {
+	limits, _ := parseGoArgs([]string{"nodes", "-1", "depth", "-5", "movetime", "-100"})
+	if limits.Nodes != 0 {
+		t.Errorf("negative nodes became %d, want 0", limits.Nodes)
+	}
+	if limits.Depth != 0 {
+		t.Errorf("negative depth became %d, want 0", limits.Depth)
+	}
+	if limits.MoveTime != 0 {
+		t.Errorf("negative movetime became %v, want 0", limits.MoveTime)
+	}
+
+	// And the engine still answers, rather than searching forever.
+	got := run(t, "position startpos", "go nodes -1 depth 4", "quit")
+	if !strings.Contains(got, "bestmove") {
+		t.Errorf("search with a negative limit produced no bestmove:\n%s", got)
+	}
+}
+
 func TestGoPerft(t *testing.T) {
 	got := run(t, "position startpos", "go perft 3", "quit")
 	if !strings.Contains(got, "nodes: 8902") {

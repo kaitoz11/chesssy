@@ -45,7 +45,9 @@ func (e *Engine) runPerft(depth int) {
 func (e *Engine) handleBench(args []string) bool {
 	depth := depthArg(args, defaultBenchDepth)
 	if len(args) > 1 {
-		if n, err := strconv.Atoi(args[1]); err == nil && n >= 1 {
+		// Bounded like the Threads option: an unbounded count here would let a
+		// typo allocate a worker per requested thread.
+		if n, err := strconv.Atoi(args[1]); err == nil && n >= minThreads && n <= maxThreads {
 			e.searcher.SetThreads(n)
 		}
 	}

@@ -4,8 +4,20 @@
 # runner, which has no make. Everything else uses the make targets a contributor
 # runs locally, so that CI and `make check` cannot drift apart.
 #
-# Module caching is off throughout: the engine has no dependencies outside the
-# standard library and no go.sum, so there is nothing to cache.
+# Supply chain notes, which apply to every workflow here:
+#   - Actions are pinned to a commit SHA, not a tag. A tag can be moved to point at
+#     new code; a SHA cannot. The trailing comment is the human-readable version,
+#     and dependabot updates both together.
+#   - persist-credentials: false, so no git credential is left in the workspace for
+#     a build step to pick up.
+#   - The default token is read-only, granted per workflow, and only the release job
+#     is given contents: write.
+#   - No pull_request_target or workflow_run trigger, so nothing in a fork's pull
+#     request runs with this repository's secrets.
+#   - Tools fetched with `go run tool@version` are pinned by version and verified
+#     against the Go checksum database, which makes a moved upstream tag inert.
+#   - Module caching is off: the engine has no dependencies outside the standard
+#     library and no go.sum, so there is nothing to cache.
 name: CI
 
 on:
@@ -34,8 +46,10 @@ jobs:
         # current release. A change that needs a newer Go has to raise go.mod first.
         go: ["1.23.x", "stable"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -51,8 +65,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
@@ -64,8 +80,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
@@ -80,8 +98,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
@@ -96,8 +116,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
@@ -110,8 +132,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true

@@ -44,7 +44,13 @@ func TestFENErrors(t *testing.T) {
 		{"bad castling", "4k3/8/8/8/8/8/8/4K3 w Xq - 0 1"},
 		{"bad en passant", "4k3/8/8/8/8/8/8/4K3 w - z9 0 1"},
 		{"bad halfmove clock", "4k3/8/8/8/8/8/8/4K3 w - - x 1"},
+		{"negative halfmove clock", "4k3/8/8/8/8/8/8/4K3 w - - -1 1"},
+		// The clocks are stored in a uint16. A larger number must be rejected
+		// rather than silently wrapping, which would turn 65536 halfmoves into 0
+		// and lose a fifty-move draw.
+		{"halfmove clock out of range", "4k3/8/8/8/8/8/8/4K3 w - - 65536 1"},
 		{"bad fullmove number", "4k3/8/8/8/8/8/8/4K3 w - - 0 0"},
+		{"fullmove number out of range", "4k3/8/8/8/8/8/8/4K3 w - - 0 65536"},
 		{"no kings", "8/8/8/8/8/8/8/8 w - - 0 1"},
 		{"two white kings", "4k3/8/8/8/8/8/8/3KK3 w - - 0 1"},
 	}

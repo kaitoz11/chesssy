@@ -142,17 +142,22 @@ func (p *Position) parseEnPassantField(field string) error {
 }
 
 // parseClocks reads the optional halfmove clock and fullmove number.
+//
+// Both are stored in a uint16, so both are parsed at that width: a number too
+// large to fit is a bad FEN, not a number to be truncated. Truncating would be
+// worse than rejecting, since a halfmove clock of 65536 would wrap to 0 and lose
+// a fifty-move draw.
 func (p *Position) parseClocks(fields []string) error {
 	p.halfMoves, p.fullMoves = 0, 1
 	if len(fields) > 4 {
-		n, err := strconv.Atoi(fields[4])
-		if err != nil || n < 0 {
+		n, err := strconv.ParseUint(fields[4], 10, 16)
+		if err != nil {
 			return fmt.Errorf("%w: halfmove clock %q", ErrInvalidFEN, fields[4])
 		}
 		p.halfMoves = uint16(n)
 	}
 	if len(fields) > 5 {
-		n, err := strconv.Atoi(fields[5])
+		n, err := strconv.ParseUint(fields[5], 10, 16)
 		if err != nil || n < 1 {
 			return fmt.Errorf("%w: fullmove number %q", ErrInvalidFEN, fields[5])
 		}

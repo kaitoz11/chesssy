@@ -4,6 +4,8 @@
 # Runs weekly and on demand. The numbers are printed in the job log rather than
 # compared automatically, because a shared runner's wall clock is not stable enough
 # to gate on — node counts, which are exact, are what to read here.
+#
+# Actions are pinned to a commit SHA; see the notes at the top of ci.yml.
 name: Weekly
 
 on:
@@ -24,8 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true

@@ -5,6 +5,13 @@
 # The tests run first, because a tag that fails them should not become a download.
 # Running this workflow by hand builds a snapshot and attaches it as an artefact
 # instead of publishing anything, which is how to rehearse a release.
+#
+# This is the only workflow with a writable token, so it is the one worth being
+# careful about. It runs only on a tag push or a manual dispatch, never on a pull
+# request, so nothing from a fork can reach it. The two actions it uses are
+# first-party and pinned to a commit SHA, and GoReleaser is fetched as a
+# checksum-verified Go module at an exact version rather than as an action; see the
+# notes at the top of ci.yml.
 name: Release
 
 on:
@@ -25,8 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
@@ -43,26 +52,32 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # GoReleaser needs the full history and tags to build the changelog.
+          # GoReleaser needs the full history and tags to build the changelog. It
+          # publishes through the API rather than git, so it needs no credential in
+          # the workspace.
           fetch-depth: 0
-      - uses: actions/setup-go@v7
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
           cache: false
-      - uses: goreleaser/goreleaser-action@v7
-        with:
-          version: "~> v2"
-          args: >-
-            release --clean
-            ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
+      - name: Release
+        # GoReleaser is run as a Go module rather than through its action: the
+        # module proxy and the Go checksum database verify the contents of this
+        # exact version, and it keeps the one job with a writable token down to two
+        # first-party actions. A manual run builds a snapshot and publishes nothing.
+        run: >-
+          go run github.com/goreleaser/goreleaser/v2@v2.18.1
+          release --clean
+          ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload snapshot artefacts
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chesssy-snapshot
           path: dist/*

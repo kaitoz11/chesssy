@@ -66,3 +66,34 @@ third-party dependency surface to report against. Vulnerabilities in the Go
 toolchain or standard library should go to the [Go security
 team](https://go.dev/security/policy); tell us too if a released chesssy binary
 needs rebuilding because of one.
+
+## Build and release integrity
+
+The other way a project like this gets compromised is through its build, so the
+release path is deliberately small:
+
+- **No dependencies.** The engine imports only the Go standard library, so there
+  is no package for an attacker to take over. `go.mod` has no `require` block and
+  there is no `go.sum`. A pull request that adds a dependency is a change to this
+  threat model and will be treated as one.
+- **Actions pinned by digest.** Every GitHub Action is pinned to a full commit
+  SHA, with the version in a trailing comment, so moving a tag upstream — the way
+  the `tj-actions/changed-files` compromise reached its victims — cannot change
+  what runs here. Dependabot proposes updates to those SHAs monthly.
+- **No privileged fork triggers.** There is no `pull_request_target` or
+  `workflow_run` workflow, so no code from a fork's pull request runs with this
+  repository's token or secrets. Pull request workflows get a read-only token.
+- **Least privilege.** Workflows default to `contents: read`. Only the release job
+  is granted `contents: write`, it runs solely on a tag push or a manual dispatch,
+  and it uses two first-party actions and nothing else. `persist-credentials` is
+  off for every checkout, so no git credential is left in the workspace.
+- **Tools verified by checksum.** staticcheck, govulncheck and GoReleaser are
+  fetched with `go run tool@version` at pinned versions, which the module proxy and
+  the Go checksum database verify by content hash. A moved upstream tag is inert.
+- **Reproducible artefacts.** Release binaries are built with `-trimpath`, with
+  `CGO_ENABLED=0` and with the commit timestamp as the module timestamp, and are
+  published with a `checksums.txt` you can verify a download against.
+
+If you find a way around any of this — a workflow that can be made to run
+attacker-controlled code, or a path to the release token — report it as a
+vulnerability through the process above.
