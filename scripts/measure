@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# measure reports the best of several runs for the fixed workloads that matter:
+# search throughput, time to depth, and raw move generation speed.
+#
+# The minimum, not the mean, is the statistic of interest: a run can only be made
+# slower by interference, so the fastest run is the closest to the machine's true
+# capability. Node counts are printed too, since a change that only searches fewer
+# nodes is a different kind of win from one that searches them faster.
+#
+# Usage: scripts/measure [runs]
+set -euo pipefail
+
+runs="${1:-5}"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bin="$root/bin/chesssy"
+
+go build -o "$bin" "$root/cmd/chesssy"
+
+best() { # best <label> <command...>
+	local label="$1"
+	shift
+	local best=""
+	for _ in $(seq "$runs"); do
+		local ms
+		ms="$("$@")"
+		if [[ -z "$best" || "$ms" -lt "$best" ]]; then best="$ms"; fi
+	done
+	printf '%-24s %8s ms\n' "$label" "$best"
+}
+
+# duration_ms turns a Go duration such as "861ms" or "1.001s" into milliseconds.
+duration_ms() {
+	awk '{
+		d = $0
+		sub(/,$/, "", d)
+		if (d ~ /ms$/)      { sub(/ms$/, "", d); print int(d + 0.5) }
+		else if (d ~ /us$/ || d ~ /µs$/) { sub(/(us|µs)$/, "", d); print int(d / 1000 + 0.5) }
+		else if (d ~ /s$/)  { sub(/s$/, "", d);  print int(d * 1000 + 0.5) }
+		else                { print int(d + 0.5) }
+	}'
+}
+
+# duration_field picks the duration out of a summary line, wherever it sits: the token
+# is the one carrying a time unit, which no other field does.
+duration_field() {
+	awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^[0-9.]+(ns|us|µs|ms|s),?$/) last = $i } END { print last }'
+}
+
+# search_ms <depth> [threads]: time spent searching the bench position set.
+search_ms() {
+	"$bin" bench -depth "$1" -threads "${2:-1}" | grep '^bench:' | duration_field | duration_ms
+}
+
+# perft_ms <depth>: time spent counting a fixed perft.
+perft_ms() {
+	"$bin" perft -depth "$1" | grep '^depth' | duration_field | duration_ms
+}
+
+echo "runs: $runs (best of)"
+best "bench depth 9" search_ms 9
+best "bench depth 11" search_ms 11
+best "bench depth 13" search_ms 13
+best "bench depth 13 x8" search_ms 13 8
+best "perft depth 5" perft_ms 5
+
+echo
+echo "node counts (must not change for a pure speed optimisation):"
+for depth in 9 11 13; do
+	"$bin" bench -depth "$depth" | awk "/^bench:/ {printf \"  depth %-3s %10s nodes\\n\", \$3, \$6}"
+done
